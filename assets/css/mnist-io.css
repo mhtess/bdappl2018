@@ -1,0 +1,40 @@
+.mnist .loading {
+    height: 260px;
+    font-family: Courier;
+}
+
+.mnist canvas {
+    border: 4px solid #99ccff;
+}
+
+.mnist canvas:hover {
+    cursor: crosshair;
+}
+
+.mnist .downsampled {
+    display: inline-block;
+}
+
+.mnist .downsampled table {
+    border: 1px solid gray;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.mnist .downsampled td {
+    width: 6px;
+    height: 6px;
+    line-height: 4px;
+}
+
+.downsampled .on {
+    background-color: gray;
+}
+
+.downsampled .off {
+    background-color: white;
+}
+
+.mnist .ready {
+    display: none;
+}

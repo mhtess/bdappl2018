@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+  {% if page.custom_css %}
+      {% for stylesheet in page.custom_css %}
+      <link rel="stylesheet" href="{{ stylesheet | prepend: site.baseurl }}" media="screen" type="text/css">
+      {% endfor %}
+    {% endif %}
+  {% if page.custom_js %}
+    {% for js_file in page.custom_js %}
+    <script src='{{ js_file | prepend: site.baseurl }}' type="text/javascript"></script>
+    {% endfor %}
+  {% endif %}
+
+  <body>
+
+    {% include header.html %}
+
+    <div class="page-content-wrapper">
+      <div class="page-content">
+        {{ content }}
+      </div>
+    </div>
+
+    {% include footer.html %}
+
+  </body>
+
+</html>

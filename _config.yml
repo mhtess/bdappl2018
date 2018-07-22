@@ -1,0 +1,11 @@
+# Site settings
+
+title: Bayesian Data Analysis using Probabilistic Programs (CogSci 2018)
+baseurl: "/bdappl2018"
+url: "http://mhtess.github.io/bdappl2018"
+
+# Build settings
+markdown: kramdown
+
+exclude:
+- node_modules
