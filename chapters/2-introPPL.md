@@ -103,7 +103,7 @@ var myDist = Bernoulli(parameters)
 sample(myDist)
 ~~~~
 
-** Exercise**: Line by line, describe what is happening in the above code box.
+**Exercise**: Line by line, describe what is happening in the above code box.
 
 ### Properties of distribution objects
 

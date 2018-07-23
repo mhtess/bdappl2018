@@ -42,7 +42,7 @@ var propensityToHelp = 0.75
 
 // generate data
 var observableResponses = repeat(numberOfKidsTested,
-  function(){return flip(probabilityOfHelping)}
+  function(){return flip(propensityToHelp)}
 )
 
 // summarize data
@@ -56,14 +56,14 @@ display("proportion of kids who helped = " + observedProportionHelping)
 ~~~~
 
 In the code box above, we defined a **generative process** of possible observed data in our experimental setting.
-It is a simple generative process, where we assume each participant produces a response *independent* of all others (this is implicit in the `repeat`), and with the same probability (`probabilityOfHelping`).
+It is a simple generative process, where we assume each participant produces a response *independent* of all others (this is implicit in the `repeat`), and with the same probability (`propensityToHelp`).
 Note that this assumption underlies a lot of simple frequentist statistics, like a binomial test. 
 We might want to relax the first assumption, if for example, all twenty kids were tested simultaneously in the same location and there was the possibility that behavior of one child would influence the other.
 We might relax the second assumption if we have more information about each child that we thought might be relevant and/or that is of scientific interest (e.g., demographic variables that we might be interested in like gender or SES, but also *repeated measurements* of the same child).
 
 We represent the data above (`observableResponses`) as an array of Boolean responses (`true` or `false`) as well as the number of `true` (or helpful responses; `numberOfHelpfulResponses`) and the proportion out of 20 (`observedProportionHelping`).
 
-> Exercise: See how changing the `probabilityOfHelping` changes the observed `numberOfHelpfulResponses`. Wrap the lines code into a function, and have it return `numberOfHelpfulResponses`. Use `viz(repeat(1000, newFunction))` to visualize the *distribution* on `numberOfHelpfulResponses`.
+**Exercise:** See how changing the `propensityToHelp` changes the observed `numberOfHelpfulResponses`. Wrap the lines code into a function, and have it return `numberOfHelpfulResponses`. Use `viz(repeat(1000, newFunction))` to visualize the *distribution* on `numberOfHelpfulResponses`.
 
 This particular generative process (independent flips of a coin) is a very common one and actually has its own primitive distribution that corresponds to the generative process: the `Binomial` distribution.
 So, we could rewrite the above code as the following:
@@ -380,7 +380,7 @@ For BDA, this is usually achived using `observe`.
 
 Here is a summary of the three statements.
 
-~~~~ no run
+~~~~ norun
 factor(val)
 observe(Dist, val) === factor(Dist.score(val)) === condition(sample(Dist) == val)
 condition(bool) === factor(bool ? 0 : -Infinity)
