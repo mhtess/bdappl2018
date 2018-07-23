@@ -4,7 +4,7 @@ title: Elaborating models
 description: "A pinch of sophistication and elegance"
 ---
 
-You are running a study to examine the efficacy of social messaging on participants' belief in a cause (e.g., eating less meat).
+Imagine you are running a study to examine the efficacy of social messaging on participants' belief in a cause (e.g., eating less meat).
 In your study, participants read about the behavior of others in their commmunity and report on their interest in eating less meat (e.g., as in [this paper](https://pdfs.semanticscholar.org/d172/6f274e7c0f7190f83854352d8ffcbda632bb.pdf)). 
 Later in the study, they are given the opportunity to donate their monetary compensation to a non-profit that supports the cause. 
 

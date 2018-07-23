@@ -140,10 +140,10 @@ So our prior distribution is the `Beta({a: 1, b:1})`.
 Because assigning equal probabilities to all possible values of a distribution is a very common practice, this distribution can also be described by another family of distributions: The Uniform distribution. The Uniform distribution has two parameters as well (also denoted in WebPPL as `a` and `b`). These parameters are the lower and upper bounds of the range of values. And so, the `Beta({a: 1, b:1})` is equal to `Uniform({a: 0, b:1})`.
 
 ~~~~
-var priorDistribution = Uniform({a:0, b:1})
+var PriorDistribution = Uniform({a:0, b:1})
 
 var samplePrior = function(){
-  var propensityToHelp = sample(priorDistribution)
+  var propensityToHelp = sample(PriorDistribution)
   return propensityToHelp
 }
 
@@ -151,17 +151,18 @@ viz(repeat(10000, samplePrior))
 ~~~~
 
 The `Uniform` distribution (bounded between 0 and 1) represents our *a priori* state of knowledge about `propensityToHelp`.
-This is the first step towards learning about `propensityToHelp`; we must specify what we believe *a priori*.
+Specifying what we believe *a priori* is the first step towards determining what we should believe *a posteriori*, or after we observe the data.
 
 We can combine this prior distribution over the parameter with our generative process of the data, which we wrote down above.
 Composing these together will produce a prior distribution over observed data.
-This is called the *prior predictive distribution*, and the support of this distribution (i.e., the values over which this distribution is defined) are the possible outcomes of the experiment.
+Distributions over observed data are called **predictive distributions** and so this is the *prior predictive distribution*.
+The support of this distribution (i.e., the values over which this distribution is defined) are the possible outcomes of the experiment, whereas the **parameter distribution** above is defined over the values of the latent parameter.
 
 ~~~~
-var priorDistribution = Uniform({a:0, b:1});
+var PriorDistribution = Uniform({a:0, b:1});
 var numberOfKidsTested = 20;
 var samplePriorPredictive = function(){
-  var propensityToHelp = sample(priorDistribution)
+  var propensityToHelp = sample(PriorDistribution)
   var numberOfHelpfulResponses = binomial({
     p: propensityToHelp,
     n: numberOfKidsTested
@@ -172,20 +173,20 @@ var samplePriorPredictive = function(){
 viz(repeat(10000, samplePriorPredictive))
 ~~~~
 
-> Exercise: How does this distribution differ from the one above it? Why?
+**Exercise:** How does this distribution differ from the one above it? Why?
 
 #### Learning about parameters from data
 
 Having specified our *a priori* state of knowledge about the parameter of interest, and the generative process of the data given a particular value of the parameter, we are ready to make inferences about the likely value of the parameter given our observed data.
-This is process is called *Bayesian inference* and represents the mathematically correct way of reasoning about the underlying probability that generated our data.
+We do this via *Bayesian inference*, the mathematically correct way of reasoning about the underlying probability that generated our data.
 
-So we ran the experiment and 15 out of 20 kids performed the helping behavior.
+So we run the experiment, and 15 out of 20 kids performed the helping behavior.
 Thus, `numberOfHelpfulResponses == 15`.
 How can we tell our model about this?
 
 ~~~~ norun
 var sampleAndObserve = function(){
-  var propensityToHelp = sample(priorDistribution)
+  var propensityToHelp = sample(PriorDistribution)
   var numberOfHelpfulResponses = binomial({
     p: propensityToHelp,
     n: numberOfKidsTested
@@ -204,23 +205,18 @@ What if we returned `propensityToHelp`?
 Well, that will just give us the same prior that we saw above, because there is no relationship in the program between `matchesOurData` and `propensityToHelp`.
 
 What if we returned `propensityToHelp`, but only if `matchesOurData` is `true`?
-In principle, any value `propensityToHelp` **could** give rise to our data, but intuitively some values are more likely to than others (e.g., a `propensityToHelp` = 0.2, would produce 15 out of 20 successes with probability proportional to $$0.2^{15} + 0.8^5$$, which is not as likely as a `propensityToHelp` = 0.8 would have in producing 15 out of 20 success).
+In principle, any value `propensityToHelp` *could* give rise to our data, but intuitively some values are more likely to than others (e.g., a `propensityToHelp` = 0.2, would produce 15 out of 20 successes with probability proportional to $$0.2^{15} + 0.8^5$$, which is not as likely as a `propensityToHelp` = 0.8 would have in producing 15 out of 20 success).
 
-It turns out, if you repeat that procedure many times, then the values that survive this rejection procedure, survive it in proportion to the actual *a posteriori* probability of those values given the observed data. This procedure is called [Rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling), and it is the simplest algorithm for [Bayesian inference](https://en.wikipedia.org/wiki/Bayesian_inference).
-
-The algorithm can be written as:
-
-1. Sample a parameter value from the prior (e.g., `p = uniform(0,1)`)
-2. Make a prediction (i.e., generate an outcome), given that parameter value (e.g., `binomial( {n:20, p: p} )`)
-+ If the prediction generates the observed data, record parameter value.
-+ If the prediction doesn't generate the observed data, throw away that parameter value.
-3. Repeat many times.
+It turns out, if you repeat that procedure many times, then the values that survive this "rejection" procedure, survive it in proportion to the actual *a posteriori* probability of those values given the observed data. 
+It is a mathematical manifestation of the quotation from Arthur Conan Doyle's *Sherlock Holmes*: "Once you eliminate the impossible, whatever remains, no matter how improbable, must be the truth."
+Thus, we eliminate the impossible (and, implicitly, we penalize the improbable), and what we are left with is a distribution that reflects our state of knowledge after having observed the data we collected.
 
 ~~~~
-var priorDistribution = Uniform({a:0, b:1});
+var PriorDistribution = Uniform({a:0, b:1});
 var numberOfKidsTested = 20;
+
 var sampleAndObserve = function(){
-  var propensityToHelp = sample(priorDistribution)
+  var propensityToHelp = sample(PriorDistribution)
   var numberOfHelpfulResponses = binomial({
     p: propensityToHelp,
     n: numberOfKidsTested
@@ -246,9 +242,60 @@ viz(posteriorSamples)
 Visualized from the code box above is the *posterior distribution* over the parameter `propensityToHelp`.
 It represents our state of knowledge about the parameter after having observed the data (15 out of 20 success).
 
+#### The inference algorithm
+
+The procedure we implemented in the above code box is called [Rejection sampling](https://en.wikipedia.org/wiki/Rejection_sampling), and it is the simplest algorithm for [Bayesian inference](https://en.wikipedia.org/wiki/Bayesian_inference).
+
+The algorithm can be written as:
+
+1. Sample a parameter value from the prior (e.g., `p = uniform(0,1)`)
+2. Make a prediction (i.e., generate a possible observed data), given that parameter value (e.g., `binomial( {n:20, p: p} )`)
++ If the prediction generates the observed data, record parameter value.
++ If the prediction doesn't generate the observed data, throw away that parameter value.
+3. Repeat many times.
+
 Just as we saw in the previous chapter, our ability to represent this distribution depends upon the number of samples we take.
-Here, we have chosen to take 100000 samples in order to more accurately represent the posterior distribution.
-The number of samples doesn't correspond to anything about our scientific question; it is a parameter of the inference algorithm, not of our model.
+Above, we have chosen to take 100000 samples in order to more accurately represent the posterior distribution.
+The number of samples doesn't correspond to anything about our scientific question; it is a feature of the *inference algorithm*, not of our model.
+We will describe inference algorithms in more detail in a later chapter.
+
+#### The Posterior Distribution: All you ever wanted
+
+The posterior distribution represents the scientist's state of knowledge after having observed what came out in the experiment. 
+Just as with the prior, we can consider both the posterior parameter distribution (what we should believe about the `propensityToHelp`) and the posterior predictive distribution (what we should expect to observe in future experiments).
+Though we may think of these as different distributions, they are in actuality just two perspectives on the same posterior distribution. 
+
+Using Bayesian data analysis, scientists can make probability statements about the underlying parameter. 
+For example, you can take the posterior distribution and find the points between which 95% of the probability mass is located. 
+This is called a Bayesian credible interval. 
+(Note that there are actually several related but different ways of creating credible intervals. citet:kruschke2014doing has a helpful discussion of these.)
+
+The following code computes a credible interval in a crude way.
+(There are better ways of doing this outside of WebPPL. For example, the `coda` package in R can take a list of samples and estimate a smooth curve for them, and then compute a credible interval.
+)
+
+~~~~
+var credibleInterval = function(mySamples, credMass){
+  var sortedPts = _.sort(mySamples)
+  var ciIdxInc = Math.ceil(credMass*sortedPts.length)
+  var nCIs = sortedPts.length - ciIdxInc
+
+  var ciWidth = map(function(i){
+    sortedPts[i + ciIdxInc] - sortedPts[i]
+  },_.range(nCIs))
+
+  var i = _.indexOf(ciWidth, _.min(ciWidth))
+
+  return [sortedPts[i], sortedPts[i+ciIdxInc]]
+}
+
+credibleInterval(posteriorSamples, 0.95)
+~~~~
+
+The interpretation of a Bayesian credible interval is that "There is a 95% chance that the parameter is between X and Y".
+This is in contrast to classical confidence intervals, for which probability statements about parameters are verboten. 
+This leads to confusion among practitioners: In one study, the vast majority of undergraduates, masters, and PhDs misunderstood the basic interpretation of a *classical confidence interval*, instead importing a Bayesian interpretation to it citep:Hoekstra2014:misinterpretation.
+
 
 ### Abstracting away from the algorithm: `Infer`
 
@@ -311,6 +358,33 @@ var model = function() {
 }
 ~~~~
 
-<!-- to do: add summary of relationship between factor, observe, condition -->
+#### Observe, condition, and factor
 
-From here, I recommend checking out [the BDA chapter](https://probmods.org/chapters/14-bayesian-data-analysis.html) that is part of probmods.
+The helper functions `condition()`, `observe()`, and `factor()` all have the same underlying purpose: Changing the probability of different program executions. For Bayesian data analysis, we want to do this in a way that computes the posterior distribution. 
+
+Imagine running a model function a single time. 
+In some lines of the model code, the program makes *random choices* (e.g., flipping a coin and it landing on heads, or tails).
+The collection of all the random choices in an execution of every line of a program is referred to as the program execution.
+
+Different random choices may have different (prior) probabilities (or perhaps, you have uninformed priors on all of the parameters, and then they each have equal probability).
+What `observe`, `condition`, and `factor` do is change the probabilities of these different random choices. 
+For Bayesian data analysis, we use these terms to change the probabilities of these random choices to align with the true posterior probabilities. 
+For BDA, this is usually achived using `observe`.
+
+`factor` is the most primitive of the three, and `observe` and `condition` are both special cases of `factor`. 
+`factor` directly re-weights the log-probability of program executions, and it takes in a single numerical argument (how much to re-weight the log-probabilities). 
+`observe` is a special case where you want to re-weight the probabilities by the probability of the observed data under some distribution. `observe` thus takes in two arguments: a distribution and an observed data point.
+
+`condition` is a special case where you want to completely reject or rule out certain program executions.
+`condition` takes in a single *boolean* argum
+
+Here is a summary of the three statements.
+
+~~~~ no run
+factor(val)
+observe(Dist, val) === factor(Dist.score(val)) === condition(sample(Dist) == val)
+condition(bool) === factor(bool ? 0 : -Infinity)
+~~~~
+
+
+In the [next chapter](4-bdaFundamentals.html), we'll go through the fundmantals of Bayesian analysis.

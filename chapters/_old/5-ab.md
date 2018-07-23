@@ -37,7 +37,8 @@ print(_.pluck(bannerData, "id"))
 viz.table(_.pluck(bannerData, "condition"))
 ~~~~
 
-Your friend thinks that conversion rate is going to be higher for the group that has a green banner than for the group with the grey banner.Concretely, we are interested in the rate of conversion for the two groups:
+Your friend thinks that conversion rate is going to be higher for the group that has a green banner than for the group with the grey banner.
+Concretely, we are interested in the rate of conversion for the two groups:
 
 ~~~~
 ///fold:
