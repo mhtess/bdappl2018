@@ -6,39 +6,39 @@ description: "Describing the generative process of data"
 
 In the last chapter, we played around with the basic building blocks of probabilistic programs: sampling from and explicitly representing probability distributions.
 In this chapter, we will see how to use probabilistic programs to describe the generative process of data: how the observed data could have been generated.
-Explicitly describing the generative process of data enables us to learn about that process and draw inferences beyond our experimental samples.
+By explicitly articulating this generative process, we can use Bayesian inference to learn about the latent (or, unobservable) scientifically-interesting parameters of this process.
 
-Drawing inferences beyond our experimental sample is the domain of statistics. 
+<!-- Drawing inferences beyond our experimental sample is the domain of statistics. 
 If we were only interested in the sample we collect in an experiment (e.g., if you happen you sample the entire population of interest), then there is no need for statistics: You just can describe the data and that would be the end of the story.
 But that is not our usual situation: We collect experimental data in order to learn something about the population of interest (and in doing so, we often learn about a hypothesis of interest).
+ -->
 
-## Running example
+## A simple example of data analysis
 
-Imagine we are investigating the **origins of prosocial behavior** and are wondering if *16-month-old children* will provide help to a stranger in a given context (for example, as in this classic study where children observe a stranger [struggle to complete a goal](https://www.youtube.com/watch?v=kfGAen6QiUE)
-).
+Imagine we are investigating the **origins of prosocial behavior** and are wondering if *16-month-old children* will provide help to a stranger in a given context (for example, as in [this classic study](https://www.youtube.com/watch?v=kfGAen6QiUE) where children observe a stranger struggle to complete a goal).
 Note that this sort of binary question: (*do 16-month-olds help?*) is a *hypothesis testing* question. 
 Loosely speaking, hypothesis A is that they do help and hypothesis B is that they do not help.
-For now, let us put aside the binary question and ask the more continuous question: "How many 16-month-olds help?"
+For now, let us put aside the binary question and ask the more continuous question: "What is the propensity of 16-month-olds to help?"
 This is still a statistical inference question, since we are not going to measure all 16-month-olds in the world (and even if we could, we still might want to generalize to the 14-month-olds two months in the future...).
-The continuous question also has a more abstract interpretation like: "What is 16-month-olds' propensity to help in this situation?"
-The answers to such questions are inherently numerical, or quantitative; they could be coerced to produce a binary answer (e.g., do more than 50% help?) but that is not essential.
 
-Suppose we plan to collect 20 kids worth of data in a single condition of the experiment.
+Suppose we plan to collect 20 kids worth of data in a single condition of the experiment. (For now, there is no control condition)
 Each kid does the single-trial experiment one time, producing either a *helping* (coded as: 1 or `true`) or *not helping* (0 or `false`) behavior.
 
 ### Imagining possible outcomes
 
-We can use probabilistic programs to represent **generative models** that imagine different possible outcomes of our experiment.
+We can build a probabilistic program to represent a scientific, generative model that can simulate different possible outcomes of our experiment.
+(Later, we will use the actual outcome of the experiment to learn about a parameter of this model.)
 For our purposes, a generative model is simply one that provides a mapping from latent, unobservable constructs to observable data.
-In our example, the latent construct is the propensity to help (or, how many 16-months-olds in the whole population would help) and the observable behavior is the number of kids in our experiment who help.
+In our example, the latent construct is the *propensity* to help (or, how many 16-months-olds in the whole population would help) and the observable behavior is the *number* of kids in our experiment who help.
 
-The simplest, most idealized generative model is a `flip()` model: The probability that a kid helps is proportion to the underlying propensity to help. 
+The simplest, most idealized model is a `flip()` model: The probability that a kid helps is in proportion to the underlying propensity to help. 
+That is, if 16-month-old's have a 0.75 propensity to help, and we collect twenty kids worth of data, we would expect on average 15 of them to help.
 To constuct a set of 20 data points, we simply repeat the flip 20 times.
 
 ~~~~
 // define parameters
 var numberOfKidsTested = 20
-var propensityToHelp = 0.5
+var propensityToHelp = 0.75
 
 // generate data
 var observableResponses = repeat(numberOfKidsTested,
@@ -57,14 +57,15 @@ display("proportion of kids who helped = " + observedProportionHelping)
 
 In the code box above, we defined a **generative process** of possible observed data in our experimental setting.
 It is a simple generative process, where we assume each participant produces a response *independent* of all others (this is implicit in the `repeat`), and with the same probability (`probabilityOfHelping`).
-We would want to relax the first assumption, if for example, all twenty kids were tested simultaneously in the same location and there was the possibility that behavior of one child would influence the other.
-We might relax the second assumption if we have more information about each child that we thought might be relevant (e.g., demographic variables that we might be interested in like gender or SES, but also *repeated measurements* of the same child).
+Note that this assumption underlies a lot of simple frequentist statistics, like a binomial test. 
+We might want to relax the first assumption, if for example, all twenty kids were tested simultaneously in the same location and there was the possibility that behavior of one child would influence the other.
+We might relax the second assumption if we have more information about each child that we thought might be relevant and/or that is of scientific interest (e.g., demographic variables that we might be interested in like gender or SES, but also *repeated measurements* of the same child).
 
 We represent the data above (`observableResponses`) as an array of Boolean responses (`true` or `false`) as well as the number of `true` (or helpful responses; `numberOfHelpfulResponses`) and the proportion out of 20 (`observedProportionHelping`).
 
 > Exercise: See how changing the `probabilityOfHelping` changes the observed `numberOfHelpfulResponses`. Wrap the lines code into a function, and have it return `numberOfHelpfulResponses`. Use `viz(repeat(1000, newFunction))` to visualize the *distribution* on `numberOfHelpfulResponses`.
 
-This particular generative process is a very one and actually has its own primitive distribution that corresponds to the generative process: the `Binomial` distribution.
+This particular generative process (independent flips of a coin) is a very common one and actually has its own primitive distribution that corresponds to the generative process: the `Binomial` distribution.
 So, we could rewrite the above code as the following:
 
 ~~~~
@@ -85,9 +86,9 @@ display("number of kids who helped = " + numberOfHelpfulResponses)
 display("proportion of kids who helped = " + observedProportionHelping)
 ~~~~
 
-Note that using the `binomial` distribution loses the information available in `observableResponses` in the code box above. The only additional information in `observableResponses` was the order of the data, which we are assuming is not relevant.
+Note that using the `binomial` distribution loses the information available in `observableResponses` in the code box above. The only additional information in `observableResponses` was the order of the data, which we are assuming is not relevant. (We assume the same model for the 4th participant as we do for the 14th participant.)
 
-It is not always the case that the generative process of the data that we want to assume in our experimental setting has a canonical distribution that corresponds to it.
+It is not always the case that the generative process of the data that we want to assume in our experimental setting has a canonical distribution (like the Binomial) that corresponds to it. But using probabilistic programs, we can represent any generative process by stringing together multiple sampling statements, and possibly transforming them using mathematical (deterministic) operations. We will see this in the next chapter.
 
 ### Modeling scientific uncertainty
 
@@ -96,24 +97,47 @@ But that is not super helpful because we do not know the `propensityToHelp`.
 In fact, that is the very thing we would like to learn about!
 
 `propensityToHelp` is a parameter to the distribution that generates the observed data, but it is *latent* (or, unobservable).
-The proportion of kids who help in the experiment (`observedProportionHelping`) is an estimate of this latent parameter, but as you can verify above, it is not the same thing as `probabilityOfHelping`.
+The proportion of kids who help in the experiment (`observedProportionHelping`) is an estimate of this latent parameter, but as you can verify above in the code box above, it is not the same thing as `propensityToHelp`.
 
 As scientists, we very often are in the situation of having observed some data in our *sample* and trying to say something about the underlying, generating probability.
 That is, we are trying to make *inferences* from the sample to the population.
 If children are sensitive to the cues in the our helping experiment, then the `propensityToHelp` could be high.
 But if children are not motivated to help (e.g., they don't care about the stranger in our experiment), it could be close to zero.
-Figuring out `probabilityOfHelping` will help us make inferences about the children's sensitivity to our experimental setting, which is ultimately what we're interested in.
-How do learn about `probabilityOfHelping`?
+Figuring out `propensityToHelp` will help us make inferences about the children's sensitivity to our experimental setting, which is ultimately what we're interested in.
+How do learn about `propensityToHelp`?
 
 #### Prior distributions over parameters and data
 
-To learn about the `propensityToHelp` from collected data, we must describe our state of knowledge about the latent parameters before having observed any data.
-Sometimes, this is *prior distribution* is informed by our expertise as scientists.
+To learn about the `propensityToHelp` from observed data, we must describe our state of knowledge about the latent parameter before having observed any data.
+
+> **Prior distribution**: The state of knowledge of the scientist before any data has been collected.
+
+Sometimes, the *prior distribution* is informed by our expertise as scientists.
 Other times, the prior is what we think an objective scientist might assume *a priori* (e.g., a skeptical reviewer).
 
-Our `propensityToHelp` is a number between 0 and 1. 
-A relatively uninformed assumption about what `propensityToHelp` could be is any number between 0 and 1, with all numbers equally likely.
-This is called a Uniform distribution.
+Determining what the prior distribution should be is one of the intellectual challenges of doing Bayesian data analysis. 
+(Indeed, coming to terms with what we truly believe is one of the intellectual challenges of life.) 
+Because we do not know what `propensityToHelp` should be, our knowledge must be represented by a probability distribution that assigns (potentially different) probabilities to different possible values of the parameter.
+THe task of articulating a prior distribution then reduces to the task of choosing the appropriate distribution and the parameters of that distribution. (As you might imagine, there is potentially no end to this process. What should the parameters of the prior distribution be? Well, if you're not totally sure, you might want to articulate a distribution of possible values for the prior parameters, a so-called *hyperprior* distribution. Often, we don't need to be so extreme in our explicit representation of uncertainty, but it is an important tool to remember that you have in your toolkit.)
+
+Recall that distributions provide both a set of possible values of a variable and their associated probabilities. 
+So we can break the problem down into articulating the set of possible values and then the probabilities of each of the values. 
+
+1. **Possible values the parameter could take on**: This is dictated by the role of the parameter in the model.
+For example, in abstract terms, `propensityToHelp` is the weight of a coin, and thus must be a number between 0 and 1. (It would not make sense, in the generative model we've described so far, for `propensityToHelp` to be a negative number, or greater than 1.)
+
+2. **Probabilities of all of the possible values of the parameter**: This is much less obvious, but a good starting point is to consider all of the possible values equally probable. That is, we might be completely ignorant as to what the parameter should be (or, we might imagine a host of skeptical reviewers, some of whom think the parameter ought to be high, others who think the parameter ought to be low, and so we intuitively average across all of these potential skeptics). Your understanding of the prior probabilities of the parameter values will grow as you internalize the model more and as we explore the implications of different prior distributions for the results.
+
+So for `propensityToHelp`, a relatively uncontroversial assumption would be that it could be any number between 0 and 1, with all numbers equally likely.
+Now that we've made explicit our prior beliefs, we need to find a probability distribution that has these features (if one does not exist, we will need to construct one).
+Fortunately, one does exist! 
+The [Beta distribution](http://docs.webppl.org/en/master/distributions.html#Beta) is a distribution over the numbers between 0 and 1. 
+The Beta distribution has two parameters (denoted in WebPPL as `a` and `b`). 
+As can be gleaned from the [Wikipedia article](https://en.wikipedia.org/wiki/Beta_distribution), the parameters that correspond to equal probability for all values between 0 and 1 are `a=1` and `b=1`. 
+So our prior distribution is the `Beta({a: 1, b:1})`.
+
+
+Because assigning equal probabilities to all possible values of a distribution is a very common practice, this distribution can also be described by another family of distributions: The Uniform distribution. The Uniform distribution has two parameters as well (also denoted in WebPPL as `a` and `b`). These parameters are the lower and upper bounds of the range of values. And so, the `Beta({a: 1, b:1})` is equal to `Uniform({a: 0, b:1})`.
 
 ~~~~
 var priorDistribution = Uniform({a:0, b:1})
