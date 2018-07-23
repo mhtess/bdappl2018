@@ -9,15 +9,17 @@ In this chapter, we will see how to use probabilistic programs to describe the g
 Explicitly describing the generative process of data enables us to learn about that process and draw inferences beyond our experimental samples.
 
 Drawing inferences beyond our experimental sample is the domain of statistics. 
-If we were only interested in the sample we collect in an experiment (e.g., if you happen you sample the entire population of interest), then there is no need for statistics: You just can describe the data and the data is the data.
+If we were only interested in the sample we collect in an experiment (e.g., if you happen you sample the entire population of interest), then there is no need for statistics: You just can describe the data and that would be the end of the story.
 But that is not our usual situation: We collect experimental data in order to learn something about the population of interest (and in doing so, we often learn about a hypothesis of interest).
 
-As a running example, we will consider a simple case of data analysis in a hypothetical psychology experiment: Imagine we are investigating the **origins of prosocial behavior** and are wondering if *16-month-old children* will provide help to a stranger in a given context (for example, as in this classic study where children observe a stranger [struggle to complete a goal](https://www.youtube.com/watch?v=kfGAen6QiUE)
+## Running example
+
+Imagine we are investigating the **origins of prosocial behavior** and are wondering if *16-month-old children* will provide help to a stranger in a given context (for example, as in this classic study where children observe a stranger [struggle to complete a goal](https://www.youtube.com/watch?v=kfGAen6QiUE)
 ).
 Note that this sort of binary question: (*do 16-month-olds help?*) is a *hypothesis testing* question. 
 Loosely speaking, hypothesis A is that they do help and hypothesis B is that they do not help.
 For now, let us put aside the binary question and ask the more continuous question: "How many 16-month-olds help?"
-This is still a statistical inference question, since we are not going to measure all 16-month-olds in the world (and even if we could, we still might want to generalize to the 14-month-olds two months from now...).
+This is still a statistical inference question, since we are not going to measure all 16-month-olds in the world (and even if we could, we still might want to generalize to the 14-month-olds two months in the future...).
 The continuous question also has a more abstract interpretation like: "What is 16-month-olds' propensity to help in this situation?"
 The answers to such questions are inherently numerical, or quantitative; they could be coerced to produce a binary answer (e.g., do more than 50% help?) but that is not essential.
 
