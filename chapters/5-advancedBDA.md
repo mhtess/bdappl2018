@@ -264,15 +264,6 @@ editor.put("posterior", posterior)
 Display marginal posterior over the rate of bonafide participants.
 
 ~~~~
-///fold:
-var marginalize = function(myDist, label){
-    Infer({method: "enumerate"}, function(){
-        var x = sample(myDist);
-        return x[label]
-    });
-};
-///
-
 var jointPosterior = editor.get("posterior");
 
 var marginalBonafide = marginalize(jointPosterior, "percent_bonafide");
@@ -290,13 +281,6 @@ var marginalizeExponentiate = function(myDist, label){
         return Math.exp(x[label])
     });
 };
-
-var marginalize = function(myDist, label){
-    Infer({method: "enumerate"}, function(){
-        var x = sample(myDist);
-        return x[label]
-    });
-};
 ///
 
 var jointPosterior = editor.get("posterior");
@@ -310,24 +294,23 @@ viz.hist(marginalTime_disingenuous, {numBins: 10});
 print("Inferred time spent by bonafide visitors (in seconds)")
 viz.hist(marginalTime_bonafide, {numBins: 10})
 
-viz.auto(marginalize(jointPosterior, "experimental"))
-viz.auto(marginalize(jointPosterior, "control"))
+viz(marginalize(jointPosterior, "experimental"))
+viz(marginalize(jointPosterior, "control"))
 ~~~~
 
 **Exercises**
 
-1. Return the marginal distributions over the rates of the conversion parameters. (Use the [`marginalize()`](http://docs.webppl.org/en/master/functions/other.html#marginalize) function). Does accounting for the accidental visitors change the conclusions you can draw about the efficacy of the experimental condition?
+1. Return the marginal distributions over the rates of the donation parameters. (Use the [`marginalize()`](http://docs.webppl.org/en/master/functions/other.html#marginalize) function). Does accounting for the disingenuous participants change the conclusions you can draw about the efficacy of the experimental condition?
 
-2. You show these results to your friend, and she is surprised by them. Why are the results the way they are? In the above model, we assumed the rate of bonafide visitors was independent of which condition they were assigned. Could that be incorrect? Modify the model above to test the hypothesis that the rate of bonafide visitors was different for the different banners.
+2. You show these results to your colleague, and she is surprised by them. Why are the results the way they are? In the above model, we assumed the rate of bonafide participants was independent of which condition they were assigned. Could that be incorrect? Modify the model above to test the hypothesis that the rate of bonafide participants was different for the different experimental conditions.
 
-3. In the above model, we assume that disingenuous visitors are very unlikely to donate. How could we relax this assumption, and say that disingenuous visitors also have some probability of "accidentally" donating their money? Modify the model to express this possibility, run the model, and draw inferences about the rate at which disingenuous visitors buy your product.
+3. In the above model, we assume that disingenuous participants are very unlikely to donate. How could we relax this assumption, and say that disingenuous participants also have some probability of "accidentally" donating their money? Modify the model to express this possibility, run the model, and draw inferences about the rate at which disingenuous participants donate their earnings.
 
 ## Different, or multiple, dependent measures
 
 So far, we have been examining the hypothesis of whether the an experimental social messaging influences participants' propensity to donate their compensation to a social cause. Your colleague reminds you that you also collected ratings about their belief in the importance of the cause. Those ratings were given on a 1-to-5 scale, where 5 was a strong endorsement of the cause and a 1 was a strong endorsement of the opposite cause.
 
 We could analyze these data separately, and see if there was any effect on the endorsement data. But insofar as we believe these two measurements are the byproduct of the same latent construct (e.g., the underlying support for the cause), we should be able to articulate a way in which they are related.
-
 
 ~~~~
 ///fold:

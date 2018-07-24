@@ -9,6 +9,7 @@ Generate data
 
 ```{r generate.data}
 library(rwebppl)
+library(tidyverse)
 
 generateData <- "
 var sampleSubject =  function() {
@@ -22,21 +23,25 @@ var sampleSubject =  function() {
                                     {city:  'tuskegee', state: 'alabama'}]})
   var browser = categorical({ps: [5,4,3,2,1], 
                               vs:['chrome', 'firefox', 'safari', 'ie', 'opera']})
-  var condition = flip(0.5) ? 'red' : 'blue';
+  var condition = flip(0.5) ? 'experimental' : 'control';
 
   //var accidentalVisitor = flip(0.3);
 
   // somehow, accidental visitors were assigned to red more often
-  var accidentalVisitor = flip(condition == 'red' ? 0.5 : 0.1) ;
-  var time = accidentalVisitor? gaussian(1, 1) : gaussian(4, 1);
+  var accidentalVisitor = flip(condition == 'experimental' ? 0.45 : 0.1)
+  var endorsement = condition == 'experimental'  ?
+      discrete({ps: [1,2,3]}) : 
+      discrete({ps: [3,2,1]})
+
+  var time = accidentalVisitor? gaussian(2.5, 0.7) : gaussian(5, 0.75);
 
   var converted = accidentalVisitor ? false :
-                  flip(condition == 'red' ? 0.9 : 0.5)//  ? 1: 0;
+                  flip(condition == 'experimental' ? 0.9 : 0.5)//  ? 1: 0;
   return _.extend(location, 
-            {time: time, browser: browser, condition: condition, converted: converted}
+            {time: Math.exp(time), browser: browser, condition: condition, converted: converted, endorsement: endorsement, accidentalVisitor: accidentalVisitor}
   )
 }
-repeat(100, sampleSubject)
+repeat(200, sampleSubject)
 "
 
 rs <- webppl(generateData)
@@ -44,7 +49,12 @@ rs <- webppl(generateData)
 #rs <- rs %>% mutate(logtime = log(time))
 
 observed_data <- rs %>%
-  mutate(id = row.names(rs))
+  mutate(id = row.names(rs)) %>%
+  select(-accidentalVisitor)
+
+write(
+  jsonlite::toJSON(observed_data, pretty = T ),
+"~/Documents/teaching/bdappl2018/assets/js/exptData.js")
 ```
 
 Look at data

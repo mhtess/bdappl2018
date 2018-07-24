@@ -34,6 +34,44 @@ Thus, many Bayesian tutorials begin with parameter learning before moving onto h
 	- Frequentist / objectivist definition: Limiting relative frequency
 	- Bayesian / subjectivist definition: Degree of belief
 
+
+### Bayes Theorem follows from the definition of conditional probability
+
+1. $$ P(B \mid A) := \frac{P(B \cap A)}{P(A)} $$
+2. $$ P(A \mid B) := \frac{P(A \cap B)}{P(B)}  $$
+3. $$ P(B \cap A) = P(A \cap B) $$
+4. $$ P(B \mid A) \cdot P(A) = P(A \mid B) \cdot P(B) $$ 
+5. $$ P(B \mid A) = \frac{P(A \mid B) \cdot P(B)}{ P(A) } $$ 
+
+### Bayes Theorem in science
+
+
+$$
+P(\text{hypothesis} \mid \text{data}) = \frac{P(\text{data} \mid \text{hypothesis}) \times P(\text{hypothesis})}{P(\text{data})} = \frac{P(d \mid h) \times P(h)}{\int_{h} P(d \mid h)\times P(h)}
+$$
+ 
+
+In other words:
+
+$$
+posterior = \frac{\text{likelihood} \times \text{prior}}{\text{marginal likelihood}}
+$$
+
+Since $$posterior$$ has to be a probability, you can often get away with just saying:
+
+$$
+posterior \propto \text{likelihood} \times \text{prior}
+$$
+
+and later "normalizing" the posterior probabilities so they add to 1. 
+
+#### A note on frequentism
+
+- Frequentists don’t believe in $$P(h)$$
+- for them: hypotheses are either true or false (doesn’t make sense to talk about the probability of a hypothesis)
+- if you don’t have priors, you don’t have posteriors...  
+- that’s why p-values are only about $$P(d \mid h)$$
+
 ## Why Bayesian?
 
 - How we think about statistics refp:Hoekstra2014:misinterpretation

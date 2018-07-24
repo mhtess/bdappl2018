@@ -390,6 +390,9 @@ var model = function() {
   factor(Binomial( {n:20, p: propensityToHelp} ).score(15))
   return { propensityToHelp }
 }
+
+var posterior = Infer({model: model, method: "rejection", samples: 1000})
+viz(posterior)
 ~~~~
 
 Re-weighting the log-probabilities of a program execution by the (log) probability of a value under a given distribution, as is shown in the code box above, is true Bayesian updating. Because this updating procedure is so commonly used, it gets its own helper function: `observe()`.
@@ -400,9 +403,19 @@ var model = function() {
   observe(Binomial( {n:20, p: propensityToHelp} ), 15) // observe 15 from the Binomial dist
   return { propensityToHelp }
 }
+
+var posterior = Infer({model: model, method: "rejection", samples: 1000})
+viz(posterior)
 ~~~~
 
-#### Observe, condition, and factor
+Compare this simple program with the simple form of Bayes Theorem.
+
+$$
+P(\theta \mid d) \propto P(d \mid \theta) \times P(\theta)
+$$
+
+
+#### Observe, condition, and factor: distilled
 
 The helper functions `condition()`, `observe()`, and `factor()` all have the same underlying purpose: Changing the probability of different program executions. For Bayesian data analysis, we want to do this in a way that computes the posterior distribution. 
 
