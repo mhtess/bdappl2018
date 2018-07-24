@@ -63,7 +63,7 @@ We might relax the second assumption if we have more information about each chil
 
 We represent the data above (`observableResponses`) as an array of Boolean responses (`true` or `false`) as well as the number of `true` (or helpful responses; `numberOfHelpfulResponses`) and the proportion out of 20 (`observedProportionHelping`).
 
-**Exercise:** See how changing the `propensityToHelp` changes the observed `numberOfHelpfulResponses`. Wrap the lines code into a function, and have it return `numberOfHelpfulResponses`. Use `viz(repeat(1000, newFunction))` to visualize the *distribution* on `numberOfHelpfulResponses`.
+**Exercise:** See how changing the `propensityToHelp` changes the observed `numberOfHelpfulResponses`. Make a new function that returns `numberOfHelpfulResponses`. Then use `viz(repeat(1000, newFunction))` to visualize the empirical distribution on `numberOfHelpfulResponses`.
 
 This particular generative process (independent flips of a coin) is a very common one and actually has its own primitive distribution that corresponds to the generative process: the `Binomial` distribution.
 So, we could rewrite the above code as the following:
@@ -86,9 +86,39 @@ display("number of kids who helped = " + numberOfHelpfulResponses)
 display("proportion of kids who helped = " + observedProportionHelping)
 ~~~~
 
-Note that using the `binomial` distribution loses the information available in `observableResponses` in the code box above. The only additional information in `observableResponses` was the order of the data, which we are assuming is not relevant. (We assume the same model for the 4th participant as we do for the 14th participant.)
+Note that using the `binomial` distribution discards the order of the data, which we are assuming is not relevant. (We assume the same model for the 4th participant as we do for the 14th participant.)
 
-It is not always the case that the generative process of the data that we want to assume in our experimental setting has a canonical distribution (like the Binomial) that corresponds to it. But using probabilistic programs, we can represent any generative process by stringing together multiple sampling statements, and possibly transforming them using mathematical (deterministic) operations. We will see this in the next chapter.
+It is not always the case that the generative process of the data that we want to assume in our experimental setting has a canonical distribution (like the Binomial) that corresponds to it. But using probabilistic programs, we can represent any generative process by stringing together multiple sampling statements, and possibly transforming them using mathematical (deterministic) operations. 
+
+For example, suppose in this experiment children can help to varying degrees (if they decide to help). Suppose that the degree to which a child can help is Gaussian (normally) distributed, and not helping is translated to a helping degree of -2 (arbitrarily). Such a generative model could look like:
+
+~~~~ norun
+var singleParticipantModel = function(){
+  var help = flip(propensityToHelp)
+  var helpingDegree = help ? gaussian(0, 1) : -2
+  return helpingDegree
+}
+~~~~
+
+Incorporating this into our code for generating a full sample worth of data:
+
+~~~~
+// define parameters
+var numberOfKidsTested = 20
+var propensityToHelp = 0.75
+
+var singleParticipantModel = function(){
+  var help = flip(propensityToHelp)
+  var helpingDegree = help ? gaussian(0, 1): -2
+  return helpingDegree
+}
+
+var observableResponses = repeat(numberOfKidsTested,singleParticipantModel)
+
+viz.hist(observableResponses)
+~~~~
+
+We will see more of this kind of elaboration of models in [Chapter 5](5-advancedBDA.html).
 
 ### Modeling scientific uncertainty
 
@@ -97,7 +127,7 @@ But that is not super helpful because we do not know the `propensityToHelp`.
 In fact, that is the very thing we would like to learn about!
 
 `propensityToHelp` is a parameter to the distribution that generates the observed data, but it is *latent* (or, unobservable).
-The proportion of kids who help in the experiment (`observedProportionHelping`) is an estimate of this latent parameter, but as you can verify above in the code box above, it is not the same thing as `propensityToHelp`.
+The proportion of kids who help in the experiment (`observedProportionHelping`) is an estimate of this latent parameter, but as you can verify in the code box above, it is not the same thing as `propensityToHelp`.
 
 As scientists, we very often are in the situation of having observed some data in our *sample* and trying to say something about the underlying, generating probability.
 That is, we are trying to make *inferences* from the sample to the population.
@@ -108,7 +138,7 @@ How do learn about `propensityToHelp`?
 
 #### Prior distributions over parameters and data
 
-To learn about the `propensityToHelp` from observed data, we must describe our state of knowledge about the latent parameter before having observed any data.
+To learn about the `propensityToHelp` from observed data, the Bayesian data analyst must describe their state of knowledge about the latent parameter before having observed any data.
 
 > **Prior distribution**: The state of knowledge of the scientist before any data has been collected.
 
@@ -118,7 +148,7 @@ Other times, the prior is what we think an objective scientist might assume *a p
 Determining what the prior distribution should be is one of the intellectual challenges of doing Bayesian data analysis. 
 (Indeed, coming to terms with what we truly believe is one of the intellectual challenges of life.) 
 Because we do not know what `propensityToHelp` should be, our knowledge must be represented by a probability distribution that assigns (potentially different) probabilities to different possible values of the parameter.
-THe task of articulating a prior distribution then reduces to the task of choosing the appropriate distribution and the parameters of that distribution. (As you might imagine, there is potentially no end to this process. What should the parameters of the prior distribution be? Well, if you're not totally sure, you might want to articulate a distribution of possible values for the prior parameters, a so-called *hyperprior* distribution. Often, we don't need to be so extreme in our explicit representation of uncertainty, but it is an important tool to remember that you have in your toolkit.)
+The task of articulating a prior distribution then reduces to the task of choosing the appropriate distribution and the parameters of that distribution. (As you might imagine, there is potentially no end to this process. What should the parameters of the prior distribution be? Well, if you're not totally sure, you might want to articulate a distribution of possible values for the prior parameters, a so-called *hyperprior* distribution. Often, we don't need to be so extreme in our explicit representation of uncertainty, but it is an important tool to remember that you have in your toolkit.)
 
 Recall that distributions provide both a set of possible values of a variable and their associated probabilities. 
 So we can break the problem down into articulating the set of possible values and then the probabilities of each of the values. 
@@ -137,7 +167,7 @@ As can be gleaned from the [Wikipedia article](https://en.wikipedia.org/wiki/Bet
 So our prior distribution is the `Beta({a: 1, b:1})`.
 
 
-Because assigning equal probabilities to all possible values of a distribution is a very common practice, this distribution can also be described by another family of distributions: The Uniform distribution. The Uniform distribution has two parameters as well (also denoted in WebPPL as `a` and `b`). These parameters are the lower and upper bounds of the range of values. And so, the `Beta({a: 1, b:1})` is equal to `Uniform({a: 0, b:1})`.
+Because assigning equal probabilities to all possible values of a distribution is a very common practice, this state of knowledge can also be described with another family of distributions: The Uniform distribution. The Uniform distribution has two parameters as well (also denoted in WebPPL as `a` and `b`). These parameters are the lower and upper bounds of the range of values. And so, the `Beta({a: 1, b:1})` is equal to `Uniform({a: 0, b:1})`.
 
 ~~~~
 var PriorDistribution = Uniform({a:0, b:1})
@@ -167,7 +197,7 @@ var samplePriorPredictive = function(){
     p: propensityToHelp,
     n: numberOfKidsTested
   })
-  return numberOfHelpfulResponses
+  return {numberOfHelpfulResponses}
 }
 
 viz(repeat(10000, samplePriorPredictive))
@@ -211,6 +241,9 @@ It turns out, if you repeat that procedure many times, then the values that surv
 It is a mathematical manifestation of the quotation from Arthur Conan Doyle's *Sherlock Holmes*: "Once you eliminate the impossible, whatever remains, no matter how improbable, must be the truth."
 Thus, we eliminate the impossible (and, implicitly, we penalize the improbable), and what we are left with is a distribution that reflects our state of knowledge after having observed the data we collected.
 
+
+We'll use the `editor.put()` function to save our results so we can look at the them in different code boxes.
+
 ~~~~
 var PriorDistribution = Uniform({a:0, b:1});
 var numberOfKidsTested = 20;
@@ -221,7 +254,7 @@ var sampleAndObserve = function(){
     p: propensityToHelp,
     n: numberOfKidsTested
   })
-  var matchesOurData = (propensityToHelp == 15)
+  var matchesOurData = (numberOfHelpfulResponses == 15)
   return matchesOurData ? propensityToHelp : "reject"
 }
 
@@ -235,6 +268,9 @@ var posteriorSamples = filter(
   function(s){return s != "reject" },
   repeat(100000, sampleAndObserve)
 )
+
+// save results in browser cache to access them later
+editor.put("posteriorSamples", posteriorSamples)
 
 viz(posteriorSamples)
 ~~~~
@@ -271,12 +307,13 @@ This is called a Bayesian credible interval.
 (Note that there are actually several related but different ways of creating credible intervals. citet:kruschke2014doing has a helpful discussion of these.)
 
 The following code computes a credible interval in a crude way.
-(There are better ways of doing this outside of WebPPL. For example, the `coda` package in R can take a list of samples and estimate a smooth curve for them, and then compute a credible interval.
+The code chunk below calls out to an external JavaScript library called "Lodash" using `_.fn()`. For documentation about lodash, see [https://lodash.com/docs/](https://lodash.com/docs/).
+(It should be noted: There are better ways of doing this outside of WebPPL. For example, the `coda` package in R can take a list of samples and estimate a smooth curve for them, and then compute a credible interval.
 )
 
 ~~~~
 var credibleInterval = function(mySamples, credMass){
-  var sortedPts = _.sort(mySamples)
+  var sortedPts = sort(mySamples)
   var ciIdxInc = Math.ceil(credMass*sortedPts.length)
   var nCIs = sortedPts.length - ciIdxInc
 
@@ -289,12 +326,15 @@ var credibleInterval = function(mySamples, credMass){
   return [sortedPts[i], sortedPts[i+ciIdxInc]]
 }
 
+
+var posteriorSamples = editor.get("posteriorSamples")
+
 credibleInterval(posteriorSamples, 0.95)
 ~~~~
 
 The interpretation of a Bayesian credible interval is that "There is a 95% chance that the parameter is between X and Y".
 This is in contrast to classical confidence intervals, for which probability statements about parameters are verboten. 
-This leads to confusion among practitioners: In one study, the vast majority of undergraduates, masters, and PhDs misunderstood the basic interpretation of a *classical confidence interval*, instead importing a Bayesian interpretation to it citep:Hoekstra2014:misinterpretation.
+This leads to confusion among practitioners: In one study, the vast majority of undergraduates, masters, and PhDs misunderstood the basic interpretation of a *classical confidence interval*, instead importing a Bayesian interpretation to it refp:Hoekstra2014:misinterpretation.
 
 
 ### Abstracting away from the algorithm: `Infer`
@@ -304,7 +344,7 @@ The rejection sampling algorithm we described above is a universal way of doing 
 However, it might take an extremely long amount of time to do so (for example, if your observed data is statistically unlikely given your prior). 
 Current research in computer science is trying to figure out more and better ways of getting to a posterior distribution.
 
-Probabilistic programming languages provide a useful abstraction barrier that (often) let's the data analyst worry less about the algorithm to get the posterior. This abstraction lets the scientist specify her *generative model of the data* (including: priors, linking function), and the data, and returns to her the posterior. In WebPPL, this abstraction is accomplished by the built-in function `Infer()`.
+Probabilistic programming languages provide a useful abstraction barrier that (often) allows the data analyst to worry less about the algorithm to get the posterior. This abstraction lets the scientist specify their *generative model of the data* (including: priors, linking function), and the data, and returns to her the posterior. In WebPPL, this abstraction is accomplished by the built-in function `Infer()`.
 
 ~~~~
 var priorDistribution = Uniform({a:0, b:1});
@@ -315,13 +355,17 @@ var model = function() {
     p: propensityToHelp,
     n: numberOfKidsTested
   })
-  condition(propensityToHelp == 15) // condition on data
+  condition(numberOfHelpfulResponses == 15) // condition on data
   return { propensityToHelp }
 }
 
-var posteriorDistibution = Infer({
-  model: model, method: "rejection", samples: 1000
-})
+var inferArgument = {
+  model: model, 
+  method: "rejection", 
+  samples: 5000
+}
+
+var posteriorDistibution = Infer(inferArgument)
 
 viz(posteriorDistibution)
 ~~~~

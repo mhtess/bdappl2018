@@ -4,26 +4,12 @@ title: Probabilistic programming
 description: "A brief introduction."
 ---
 
+
 WebPPL is a probabilistic programming language based on Javascript. WebPPL can be used most easily through [webppl.org](http://webppl.org). It can also be [installed locally](http://webppl.readthedocs.io/en/dev/installation.html) and run from the [command line](http://webppl.readthedocs.io/en/dev/usage.html).
 
-The deterministic part of WebPPL is a [subset of Javascript](http://dippl.org/chapters/02-webppl.html). Start off with a [basic introduction](http://probmods.org/chapters/13-appendix-js-basics.html) to the deterministic parts of the language.
+The deterministic part of WebPPL is a [subset of Javascript](http://dippl.org/chapters/02-webppl.html). 
 
-### Some restrictions
-
-Variables can be defined, but (unlike in JavaScript) their values cannot be redefined. For example, the following does not work:
-
-~~~~
-var a = 0;
-a = 1; // won't work
-
-var b = {x: 0};
-b.x = 1; // won't work
-~~~~
-
-This also means looping constructs (such as `for`) are not available; we use functional programming instead to operate on [arrays](http://webppl.readthedocs.io/en/dev/functions/arrays.html).
-(Note that [tensors](http://webppl.readthedocs.io/en/dev/functions/tensors.html) are not arrays.)
-
-## Probabilistic Programming
+> New to functional programming or JavaScript? Start off with a [basic introduction](http://probmods.org/chapters/13-appendix-js-basics.html) to the deterministic parts of the language.
 
 A [probabilistic programming language (PPL)](https://en.wikipedia.org/wiki/Probabilistic_programming_language) is specialized for building probabilistic models and *performing inference* in those models. 
 The probabilistic aspects of WebPPL come from: [distributions](http://webppl.readthedocs.io/en/dev/distributions.html) and [sampling](http://webppl.readthedocs.io/en/dev/sample.html),
@@ -83,7 +69,7 @@ Syntactically, this is denoted using a capitalized versions of the sampler funct
 
 ~~~~
 // bernoulli(0.6) // same as flip(0.6)
-Bernoulli( { p: 0.6 } )
+viz(Bernoulli( { p: 0.6 } ) )
 ~~~~
 
 (Note: `flip()` is a cute way of referring to a sample from the `bernoulli()` distribution.)
@@ -136,6 +122,23 @@ Bernoulli( { p : 0.9 } ).score(true)
 1. Try changing the parameter value of the Bernoulli distribution in the first code chunk (for the support). Does the result change? Why or why not?
 2. Try changing the parameter value of the Bernoulli distribution in the second code chunk (for the score). Does the result change? Why or why not?
 3. Modify the second code chunk to return the probability of `true` (rather than the log-probability). What is the relation between the probability of `true` and the parameter to the Bernoulli distribution?
+
+
+### Some restrictions
+
+Variables can be defined, but (unlike in JavaScript) their values cannot be redefined. For example, the following does not work:
+
+~~~~
+var a = 0;
+a = 1; // won't work
+
+var b = {x: 0};
+b.x = 1; // won't work
+~~~~
+
+This also means looping constructs (such as `for`) are not available; we use functional programming instead to operate on [arrays](http://webppl.readthedocs.io/en/dev/functions/arrays.html).
+(Note that [tensors](http://webppl.readthedocs.io/en/dev/functions/tensors.html) are not arrays.)
+
 
 
 ## Challenge problem
