@@ -2,13 +2,15 @@
 layout: chapter
 title: Elaborating models
 description: "A pinch of sophistication and elegance"
+custom_js:
+- /assets/js/exptData.js
 ---
 
 Imagine you are running a study to examine the efficacy of social messaging on participants' belief in a cause (e.g., eating less meat).
 In your study, participants read about the behavior of others in their commmunity and report on their interest in eating less meat (e.g., as in [this paper](https://pdfs.semanticscholar.org/d172/6f274e7c0f7190f83854352d8ffcbda632bb.pdf)). 
 Later in the study, they are given the opportunity to donate their monetary compensation to a non-profit that supports the cause. 
 
-## Inferring a rate
+## Beginning with a simple model
 
 You run your study on facebook and collect 1000 participants worth of data.
 Your data set includes the messaging condition (experimental vs. control), the amount of time they spent on the experiment, their rating of their belief in the cause, whether or not the participant donated their earnings, and miscellaneous demographic data (their browser, location).
@@ -24,13 +26,13 @@ var head = function(ar, l){
 ///
  
 // print first few lines of data set
-head(bannerData)
+head(exptData)
 
 // show all the ids
-print(_.pluck(bannerData, "id"))
+print(_.pluck(exptData, "id"))
 
 // how many people saw each banner?
-viz.table(_.pluck(bannerData, "condition"))
+viz.table(_.pluck(exptData, "condition"))
 ~~~~
 
 Your main hypothesis is that the donation rate is going to be higher for the group in the experimental condition than in the control condition. 
@@ -52,22 +54,22 @@ var model = function() {
 
   // unknown rates of donation
   var donationRates = {
-    grey: uniform(0,1),
-    green: uniform(0,1)
+    experimental: uniform(0,1),
+    control: uniform(0,1)
   };
 
-  foreach(bannerData, function(personData) {
+  foreach(exptData, function(personData) {
 
-      // grab appropriate conversionRate by condition
-      var acceptanceRate = conversionRates[personData["condition"]];
+      // grab appropriate donationRates by condition
+      var acceptanceRate = donationRates[personData["condition"]];
 
       // visitors are i.i.d.
       observe(Bernoulli({p:acceptanceRate}), personData["converted"])
 
   });
 
-  return _.extend(conversionRates, 
-                  {delta: conversionRates.green - conversionRates.grey});
+  return _.extend(donationRates, 
+                  {delta: donationRates.experimental - donationRates.control});
 
 }
 
@@ -84,16 +86,16 @@ var posterior = Infer(inferOpts, model);
 viz.marginals(posterior)	
 ~~~~
 
-1. Scientists often use a 95% threshold to say whether or not an inferred difference is "real". In this example, we would draw what's called a 95% *credible interval* (an interval in which there is a 95% probability that the true parameter is contained), and determine whether or not there is a real difference by seeing if this interval includes 0. By examining the figure, what can you conclude about the difference between using the grey and the green banner? 
+**Exercise**: By examining the figure, what can you infer about the difference between the experimental and control conditions?
 
 ## Data Contamination
 
-You show this analysis to your colleague. She raises your concern that some participants in your data set may not be internalizing the social messaging information. Perhaps they are just clicking through the experiment. 
+You show this analysis to your colleague. She raises the concern that some participants in your data set may not be internalizing the social messaging information. Perhaps they are just clicking through the experiment. 
 
 Fortunately, you have recorded how much time participants spend on the experimenet. Let's visualize that data.
 
 ~~~~
-viz.hist(_.pluck(bannerData, "time"), {numBins: 10})
+viz.hist(_.pluck(exptData, "time"), {numBins: 10})
 ~~~~
 
 This look likes canonical wait time data, following a log-normal distribution. To validate this intuition, let's look at the data by taking the log.
@@ -101,7 +103,7 @@ This look likes canonical wait time data, following a log-normal distribution. T
 ~~~~
 var logTimeData = map(function(t){
 	return Math.log(t);
-}, _.pluck(bannerData, "time"))
+}, _.pluck(exptData, "time"))
 
 viz.hist(logTimeData, {numBins: 10})
 ~~~~
@@ -146,7 +148,7 @@ var model = function() {
   // mixture parameter (i.e., % of bonafide visitors)
   var probBonafide = uniform(0,1);
 
-  foreach(bannerData, function(personData) {
+  foreach(exptData, function(personData) {
 
       var group = flip(probBonafide) ? "bonafide" : "disingenuous";
 
@@ -184,6 +186,87 @@ var posterior = Infer({method: "incrementalMH",
 editor.put("posterior", posterior)
 ~~~~
 
+
+More efficient way to write this model:
+
+~~~~
+///fold:
+var foreach = function(lst, fn) {
+    var foreach_ = function(i) {
+        if (i < lst.length) {
+            fn(lst[i]);
+            foreach_(i + 1);
+        }
+    };
+    foreach_(0);
+};
+///
+
+var model = function() {
+
+  // average time spent on the website (in log-seconds)
+  // assume the disingenuous participants spend less time on the experiment (because they click through)
+  var logTimes = {
+    bonafide: gaussian(3,3), // exp(3) ~ 20s
+    disingenuous: gaussian(0,2), // exp(2) ~ 7s
+  }
+
+  // variance of time spent on website (plausibly different for the two groups)
+  var sigmas =  {
+    bonafide: uniform(0,3),
+    disingenuous: uniform(0,3),
+  }
+
+  var donationRates = {
+    experimental: uniform(0,1),
+    control: uniform(0,1)
+  };
+
+  // mixture parameter (i.e., % of bonafide visitors)
+  var probBonafide = uniform(0,1);
+
+  foreach(exptData, function(personData) {
+
+    var logTime = Math.log(personData.time)
+
+    factor(
+        Math.log(
+          probBonafide* Math.exp(Gaussian({mu: logTimes.bonafide, sigma: sigmas.bonafide}).score(logTime)) + 
+          (1-probBonafide)* Math.exp(Gaussian({mu: logTimes.disingenuous, sigma: sigmas.disingenuous}).score(logTime))
+          )
+      )
+
+    factor(
+        Math.log(
+          probBonafide* Math.exp(Bernoulli({p:donationRates[personData.condition]}).score(personData.converted)) + 
+          (1-probBonafide)* Math.exp(Bernoulli({p:0.0001}).score(personData.converted))
+          )
+      )
+
+
+  } )
+
+  return { logTimes_disingenuous: logTimes.disingenuous,
+            logTimes_bonafide: logTimes.bonafide,
+            sigma_disingenuous: sigmas.disingenuous,
+            sigma_bonafide: sigmas.bonafide,
+            experimental: donationRates.experimental,
+            control: donationRates.control,
+            percent_bonafide: probBonafide }
+
+}
+
+var numSamples = 10000;
+var posterior = Infer({  method: "MCMC", 
+  samples: numSamples,
+  burn: numSamples/2, 
+  callbacks: [editor.MCMCProgress()] }, 
+                      model)
+
+// run a big model: takes about 1 minute
+editor.put("posterior", posterior)
+~~~~
+
 #### Examine posterior
 
 Display marginal posterior over the rate of bonafide participants.
@@ -205,7 +288,7 @@ var marginalBonafide = marginalize(jointPosterior, "percent_bonafide");
 viz.hist(marginalBonafide, {numBins: 15});
 ~~~~
 	
-So, indeed, almost 15% of your participants were inferred to be "disingenuous".
+So, indeed, almost 30% of your participants were inferred to be "disingenuous".
 
 ~~~~
 ///fold:
@@ -215,11 +298,18 @@ var marginalizeExponentiate = function(myDist, label){
         return Math.exp(x[label])
     });
 };
+
+var marginalize = function(myDist, label){
+    Infer({method: "enumerate"}, function(){
+        var x = sample(myDist);
+        return x[label]
+    });
+};
 ///
 
 var jointPosterior = editor.get("posterior");
 
-var marginalTime_accidental = marginalizeExponentiate(jointPosterior, "logTimes_disingenuous");
+var marginalTime_disingenuous = marginalizeExponentiate(jointPosterior, "logTimes_disingenuous");
 var marginalTime_bonafide = marginalizeExponentiate(jointPosterior, "logTimes_bonafide");
 
 print("Inferred time spent by accidental visitors (in seconds)")
@@ -227,9 +317,12 @@ viz.hist(marginalTime_disingenuous, {numBins: 10});
 
 print("Inferred time spent by bonafide visitors (in seconds)")
 viz.hist(marginalTime_bonafide, {numBins: 10})
+
+viz.auto(marginalize(jointPosterior, "experimental"))
+viz.auto(marginalize(jointPosterior, "control"))
 ~~~~
 
-### Exercises
+**Exercises**
 
 1. Return the marginal distributions over the rates of the conversion parameters. (Use the [`marginalize()`](http://docs.webppl.org/en/master/functions/other.html#marginalize) function). Does accounting for the accidental visitors change the conclusions you can draw about the efficacy of the experimental condition?
 
