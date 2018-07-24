@@ -18,38 +18,19 @@ Your data set includes the messaging condition (experimental vs. control), the a
 Let's take a look at the data.
 
 ~~~~
-///fold:
-var head = function(ar, l){
-	var len = l ? l : 6;
-	return print(ar.slice(0, len));
-}
-///
- 
 // print first few lines of data set
-head(exptData)
+display(exptData.slice(0, 6))
 
 // show all the ids
-print(_.pluck(exptData, "id"))
+display(_.map(exptData, "id"))
 
 // how many people saw each banner?
-viz.table(_.pluck(exptData, "condition"))
+viz.table(_.map(exptData, "condition"))
 ~~~~
 
 Your main hypothesis is that the donation rate is going to be higher for the group in the experimental condition than in the control condition. 
 
 ~~~~
-///fold:
-var foreach = function(lst, fn) {
-    var foreach_ = function(i) {
-        if (i < lst.length) {
-            fn(lst[i]);
-            foreach_(i + 1);
-        }
-    };
-    foreach_(0);
-};
-///
-
 var model = function() {
 
   // unknown rates of donation
@@ -58,30 +39,33 @@ var model = function() {
     control: uniform(0,1)
   };
 
-  foreach(exptData, function(personData) {
+  map(function(personData) {
 
-      // grab appropriate donationRates by condition
-      var acceptanceRate = donationRates[personData["condition"]];
+    // grab appropriate donationRates by condition
+    var acceptanceRate = donationRates[personData["condition"]];
+    
+    // participants are independent and identically distributed
+    observe(Bernoulli({p:acceptanceRate}), personData["converted"])
 
-      // visitors are i.i.d.
-      observe(Bernoulli({p:acceptanceRate}), personData["converted"])
+  }, exptData)
 
-  });
-
-  return _.extend(donationRates, 
-                  {delta: donationRates.experimental - donationRates.control});
+  return extend(donationRates,{
+    delta: donationRates.experimental - donationRates.control
+  })
 
 }
 
-var numSamples = 10000;
+var numSamples = 10000
+
 var inferOpts = {
+  model: model,
   method: "MCMC", 
   samples: numSamples,
   burn: numSamples/2, 
   callbacks: [editor.MCMCProgress()] 
 };
 
-var posterior = Infer(inferOpts, model);
+var posterior = Infer(inferOpts);
 
 viz.marginals(posterior)	
 ~~~~
@@ -95,15 +79,15 @@ You show this analysis to your colleague. She raises the concern that some parti
 Fortunately, you have recorded how much time participants spend on the experimenet. Let's visualize that data.
 
 ~~~~
-viz.hist(_.pluck(exptData, "time"), {numBins: 10})
+viz.hist(_.map(exptData, "time"), {numBins: 10})
 ~~~~
 
 This look likes canonical wait time data, following a log-normal distribution. To validate this intuition, let's look at the data by taking the log.
 
 ~~~~
 var logTimeData = map(function(t){
-	return Math.log(t);
-}, _.pluck(exptData, "time"))
+  return Math.log(t);
+}, _.map(exptData, "time"))
 
 viz.hist(logTimeData, {numBins: 10})
 ~~~~
@@ -128,10 +112,11 @@ var foreach = function(lst, fn) {
 var model = function() {
 
   // average time spent on the website (in log-seconds)
-  // assume the disingenuous participants spend less time on the experiment (because they click through)
+  // assume the disingenuous participants spend less time on the experiment 
+  // (because they click through)
   var logTimes = {
-    bonafide: gaussian(3,3), // exp(3) ~ 20s
-    disingenuous: gaussian(0,2), // exp(2) ~ 7s
+    bonafide: gaussian(5,2), // exp(3) ~ 2m
+    disingenuous: gaussian(2,2), // exp(2) ~ 7s
   }
 
   // variance of time spent on website (plausibly different for the two groups)
@@ -150,41 +135,48 @@ var model = function() {
 
   foreach(exptData, function(personData) {
 
-      var group = flip(probBonafide) ? "bonafide" : "disingenuous";
+    var group = flip(probBonafide) ? "bonafide" : "disingenuous";
 
-      observe(
-      	Gaussian({mu: logTimes[group], sigma: sigmas[group]}), 
-      	Math.log(personData.time)
-      	)
+    observe(
+      Gaussian({mu: logTimes[group], sigma: sigmas[group]}), 
+      Math.log(personData.time)
+    )
 
-      // disingenuous visitors have a very low probability of donating
-      var acceptanceRate = (group == "bonafide") ? 
-      	donationRates[personData.condition] : 
-      	0.0000001
+    // disingenuous visitors have a very low probability of donating
+    var acceptanceRate = (group == "bonafide") ? 
+        donationRates[personData.condition] : 
+    0.0000001
 
-      observe(Bernoulli({p:acceptanceRate}), personData.converted)
+    observe(Bernoulli({p:acceptanceRate}), personData.converted)
 
-  } )
+  })
 
-  return { logTimes_disingenuous: logTimes.disingenuous,
-            logTimes_bonafide: logTimes.bonafide,
-            sigma_disingenuous: sigmas.disingenuous,
-            sigma_bonafide: sigmas.bonafide,
-            experimental: donationRates.experimental,
-            control: donationRates.control,
-            percent_bonafide: probBonafide }
+  return { 
+    logTimes_disingenuous: logTimes.disingenuous,
+    logTimes_bonafide: logTimes.bonafide,
+    sigma_disingenuous: sigmas.disingenuous,
+    sigma_bonafide: sigmas.bonafide,
+    experimental: donationRates.experimental,
+    control: donationRates.control,
+    percent_bonafide: probBonafide 
+  }
 
 }
 
 var numSamples = 100000;
-var posterior = Infer({method: "incrementalMH", 
-                       samples: numSamples, burn: numSamples/2,
-                   		verbose: true, verboseLag: numSamples/10}, 
-                      model)
+var posterior = Infer({
+  method: "incrementalMH", 
+  samples: numSamples, burn: numSamples/2,
+  verbose: true, 
+  verboseLag: numSamples/10,
+  model: model
+})
 
 // run a big model: takes about 1 minute
 editor.put("posterior", posterior)
 ~~~~
+
+Above, we are using the inference algorithm `incrementalMH`, which is efficient to use when you have many random variables (i.e., sample statements) that only impact a small set of computations. Above, the `group` variable is sampled for every participant (so there are 200 `group` variables) but each one only directly influences the likelihood of that participant's data. (This is easy to note because that variable only exists when that participant's data is being considered.)
 
 
 More efficient way to write this model:
