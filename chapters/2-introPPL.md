@@ -11,11 +11,9 @@ The deterministic part of WebPPL is a [subset of Javascript](http://dippl.org/ch
 
 > New to functional programming or JavaScript? Start off with a [basic introduction](http://probmods.org/chapters/13-appendix-js-basics.html) to the deterministic parts of the language.
 
-A [probabilistic programming language (PPL)](https://en.wikipedia.org/wiki/Probabilistic_programming_language) is specialized for building probabilistic models and *performing inference* in those models. 
 The probabilistic aspects of WebPPL come from: [distributions](http://webppl.readthedocs.io/en/dev/distributions.html) and [sampling](http://webppl.readthedocs.io/en/dev/sample.html),
 marginal [inference](http://webppl.readthedocs.io/en/dev/inference/index.html),
 and [factors](http://webppl.readthedocs.io/en/dev/inference/index.html#factor).
-
 
 > **Probabilistic model**: A mathematical mapping from a set of latent (unobservable) variables to a *probability distribution* of observable outcomes or data. A **probability distribution** is simply a mathematical mapping between outcomes and their associated probability of occurrence.
 

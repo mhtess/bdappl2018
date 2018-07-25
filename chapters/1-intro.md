@@ -74,13 +74,15 @@ and later "normalizing" the posterior probabilities so they add to 1.
 
 ## Why Bayesian?
 
-- How we think about statistics refp:Hoekstra2014:misinterpretation
+- How we scientists think about statistics refp:Hoekstra2014:misinterpretation
 - The inferences we would like to draw refp:Wagenmakers2016:benefits
 - Tools are developed for flexibility and continuity with cognitive modeling (described below)
 - **Why are we not Bayesian already?** Frequentist problems are computationally simpler
 
 
 ## Why use a probabilistic programming language (PPL)
+
+A [probabilistic programming language (PPL)](https://en.wikipedia.org/wiki/Probabilistic_programming_language) is one specialized for building probabilistic models and *performing inference* in those models. 
 
 Two reasons: (1) An abstraction barrier between the model and the algorithm for inference (a la `lm` in R) and (2) Flexibility in model development. 
 

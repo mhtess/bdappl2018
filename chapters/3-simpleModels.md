@@ -32,7 +32,7 @@ For our purposes, a generative model is simply one that provides a mapping from 
 In our example, the latent construct is the *propensity* to help (or, how many 16-months-olds in the whole population would help) and the observable behavior is the *number* of kids in our experiment who help.
 
 The simplest, most idealized model is a `flip()` model: The probability that a kid helps is in proportion to the underlying propensity to help. 
-That is, if 16-month-old's have a 0.75 propensity to help, and we collect twenty kids worth of data, we would expect on average 15 of them to help.
+That is, if 16-month-olds have a 0.75 propensity to help, and we collect twenty kids worth of data, we would expect on average 15 of them to help.
 To constuct a set of 20 data points, we simply repeat the flip 20 times.
 
 ~~~~
@@ -134,7 +134,7 @@ That is, we are trying to make *inferences* from the sample to the population.
 If children are sensitive to the cues in the our helping experiment, then the `propensityToHelp` could be high.
 But if children are not motivated to help (e.g., they don't care about the stranger in our experiment), it could be close to zero.
 Figuring out `propensityToHelp` will help us make inferences about the children's sensitivity to our experimental setting, which is ultimately what we're interested in.
-How do learn about `propensityToHelp`?
+How we do learn about `propensityToHelp`?
 
 #### Prior distributions over parameters and data
 
@@ -174,7 +174,7 @@ var PriorDistribution = Uniform({a:0, b:1})
 
 var samplePrior = function(){
   var propensityToHelp = sample(PriorDistribution)
-  return propensityToHelp
+  return {propensityToHelp}
 }
 
 viz(repeat(10000, samplePrior))
@@ -438,6 +438,7 @@ For BDA, this is usually achived using `observe`.
 Here is a summary of the three statements.
 
 ~~~~ norun
+// DOES NOT RUN
 factor(val)
 observe(Dist, val) === factor(Dist.score(val)) === condition(sample(Dist) == val)
 condition(bool) === factor(bool ? 0 : -Infinity)
