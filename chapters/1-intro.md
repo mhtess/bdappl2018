@@ -132,17 +132,25 @@ In the [next chapter](2-introPPL.html), we will dig into the basics of probabili
 
 ## Other Resources
 
+- [webppl.org](http://webppl.org): An online editor for WebPPL
+- [WebPPL documentation](http://webppl.readthedocs.io/en/master/)
+- [WebPPL-viz](http://probmods.github.io/webppl-viz/): A summary of the vizualization options in WebPPL
+- [RWebPPL](https://github.com/mhtess/rwebppl): If you would rather use WebPPL within R
+
 - [WebPPL intro from DIPPL](http://dippl.org/chapters/02-webppl.html).
 - [WebPPL intro from AgentModels](http://agentmodels.org/chapters/2-webppl.html).
-- [Generative and cognitive modeling ideas](https://probmods.org).
 - WebPPL [packages](http://webppl.readthedocs.io/en/dev/packages.html) (e.g. csv, json, fs).
 - [A WebPPL package with useful BDA helper functions](https://github.com/mhtess/webppl-bda)
-- Calling WebPPL from R: [RWebPPL](https://github.com/mhtess/rwebppl).
 
 - [Probabilities and Bayes Rule in WebPPL](http://www.problang.org/chapters/app-01-probability.html) by Michael Franke
 - [Comparing methods for computing Bayes Factors](http://michael-franke.github.io/statistics,/modeling/2017/07/07/BF_computation.html) by Michael Franke
 - [BDA of Bayesian language models](http://www.problang.org/chapters/app-04-BDA.html)
 - [Old BDA course syllabus](http://web.stanford.edu/class/psych201s/) by MH Tessler
+
+- [Probabilistic Models of Cognition](http://probmods.org/): An introduction to computational cognitive science and the probabilistic programming language WebPPL
+- [Probabilistic Language Understanding](http://problang.org): An introduction to probabilistic models of language (in particular, the Rational Speech Act theory)
+- [Modeling Agents with Probabilistic Programs](http://agentmodels.org): An introduction to formal models of rational agents using WebPPL
+- [Forest](http://forestdb.org): A Repository for probabilistic models
 
 
 ## References
