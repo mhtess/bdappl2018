@@ -26,7 +26,7 @@ var utility = function(state){
 };
 
 var agent = function(state, alpha){
-  return Infer({ method: 'enumerate' }, function(){
+  return Infer({ model: function(){
 
     var action = uniformDraw(actions);
 
@@ -37,12 +37,21 @@ var agent = function(state, alpha){
     };
     factor(alpha * expectedUtility(action));
     return action;
-  })
+  },  method: 'enumerate' })
 };
 
 viz(agent(null, 1))
 ~~~~
 
+This agent is trying to figure out what action to take. 
+It does so by calculated expected utility, which is computed via imagining how different actions would translate into utility. 
+It acts according to a soft-max decision rule, which is shown in the factor statement. 
+
+### Bayesian data analysis of a Bayesian cognitive model
+
+The model above has a single free parameter: The soft-max parameter `alpha`. 
+We could infer the credible values of that parameter, if we had data showing how the agent behaved in a given situation. 
+Below, we have some example data (example decisions or actions the agent has taken), and we will build a simple BDA model to infer `alpha`. 
 
 ~~~~
 var actions = ['italian', 'french'];
@@ -87,7 +96,7 @@ var data = ['italian', 'french','french','french','french','french','french',
 
 var dataAnalysisModel = function(){
   var alpha = uniform(0, 5);
-  var cognitiveModel = softMaxAgent('initialState', alpha);
+  var cognitiveModel = agent('initialState', alpha);
   map(function(d){observe(cognitiveModel, d)}, data)
   return {
     alpha: alpha,
@@ -111,7 +120,7 @@ viz(posterior);
 ~~~~
 
 
-Check out: 
+**Exercises:**
 
-+ Prior predictive
-+ What if your model is wrong? (switch agent's beliefs about utilities)
+1. Above we have returned the posterior over the parameter `alpha` as well as the posterior predictive of choosing the french restaurant. Modify the code to instead return the prior predictive of choosing the french restaurant. 
+2. Try to break the model by switching around the agent's utilities and re-run the BDA model. How do you identify that the model is misspecified? 
