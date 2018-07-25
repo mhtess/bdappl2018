@@ -109,8 +109,8 @@ var propensityToHelp = 0.75
 
 var singleParticipantModel = function(){
   var help = flip(propensityToHelp)
-  var helpingDegree = help ? gaussian(0, 1): -2
-  return helpingDegree
+  var helpingDegree = help ? gaussian(0, 1) : -2
+  return {helpingDegree}
 }
 
 var observableResponses = repeat(numberOfKidsTested,singleParticipantModel)

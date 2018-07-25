@@ -5,6 +5,8 @@ description: "The fully Bayesian treatment"
 ---
 
 
+Consider a simple agent model. 
+
 ~~~~
 var actions = ['italian', 'french'];
 
@@ -23,7 +25,44 @@ var utility = function(state){
   return table[state];
 };
 
-var softMaxAgent = function(state, alpha){
+var agent = function(state, alpha){
+  return Infer({ method: 'enumerate' }, function(){
+
+    var action = uniformDraw(actions);
+
+    var expectedUtility = function(action){
+      return expectation(Infer({ method: 'enumerate' }, function(){
+        return utility(transition(state, action));
+      }));
+    };
+    factor(alpha * expectedUtility(action));
+    return action;
+  })
+};
+
+viz(agent(null, 1))
+~~~~
+
+
+~~~~
+var actions = ['italian', 'french'];
+
+var transition = function(state, action){
+  var nextStates = ['bad', 'good', 'spectacular'];
+  var nextProbs = (action === 'italian') ? [0.2, 0.6, 0.2] : [0.05, 0.9, 0.05];
+  return categorical(nextProbs, nextStates);
+};
+
+var utility = function(state){
+  var table = { 
+    bad: -10, 
+    good: 6, 
+    spectacular: 8 
+  };
+  return table[state];
+};
+
+var agent = function(state, alpha){
   return Infer({ method: 'enumerate' }, function(){
 
     var action = uniformDraw(actions);
@@ -62,12 +101,13 @@ var inferOpts = {
   method: "MCMC",
   samples: numSamples,
   burn: numSamples / 2,
-  callbacks: [editor.MCMCProgress()]
+  callbacks: [editor.MCMCProgress()],
+  model: dataAnalysisModel
 }
 
-var posterior = Infer(inferOpts, dataAnalysisModel);
+var posterior = Infer(inferOpts);
 
-viz.auto(posterior);
+viz(posterior);
 ~~~~
 
 
