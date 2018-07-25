@@ -155,11 +155,3 @@ var geometricCoin = function(){
 
 In the [next chapter](3-simpleModels.html), we'll start to compose generative models of data, and use observations (e.g., data we've collected in an experiment) to learn about the models we've created.
 
-
-## Resources
-
-- [WebPPL intro from DIPPL](http://dippl.org/chapters/02-webppl.html).
-- [WebPPL intro from AgentModels](http://agentmodels.org/chapters/2-webppl.html).
-- [Generative and cognitive modeling ideas](https://probmods.org).
-- WebPPL [packages](http://webppl.readthedocs.io/en/dev/packages.html) (e.g. csv, json, fs).
-- Calling WebPPL from R: [RWebPPL](https://github.com/mhtess/rwebppl).

@@ -271,7 +271,6 @@ Often in practice this will be tremendously inefficient (e.g., when your observe
 Current research in computer science is trying to develop better algorithms for approximating the marginal likelihood.
 One good technique is called [Annealed Importance Sampling](https://arxiv.org/abs/physics/9803008), and will be available in WebPPL very soon. 
 
-
 ## Savage-Dickey method
 
 For this example, the Bayes factor can be obtained by integrating out the model parameter (using `Infer` with `{method: "forward"}`).
@@ -312,6 +311,8 @@ print( savageDickeyRatio )
 ~~~~
 
 (Note that we have approximated the densities using a [kernal density estimator](https://webppl.readthedocs.io/en/master/distributions.html#KDE). Another way to estimate the density is by looking at the expectation that $$p$$ is within $$0.05$$ of the target value $$p=0.5$$.)
+
+For more information about different methods of calculating Bayes Factors, see [this helpful blogpost](http://michael-franke.github.io/statistics,/modeling/2017/07/07/BF_computation.html).
 
 We have now gone through the fundamentals of Bayesian Data Analysis.
 In the [next chapter](5-advancedBDA.html), we'll show how you can elaborate your models to better represent your data.
